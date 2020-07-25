@@ -1,11 +1,11 @@
-# Проектная работа #15 - 'Mesto' Версия: 1.0.0
+# Проектная работа #14 - 'Mesto' Версия: 1.0.0
 Учебный проект Яндекс.Практикум - одностраничный сайт, который подгружает/изменяет профиль пользователя с сервера и загружает с сервера и показывает карточки с фото и названием.
 
 Чтобы развернуть проект у себя на ПК необходимо установить [Git](https://git-scm.com/), [Node.js с NPM](https://nodejs.org/en/), [Mongo](https://www.mongodb.com/download-center/community?jmp=docs) и [Postman](https://www.postman.com/downloads/)
 
 В терминале Git Bush нужно выполнить следующие команды:
 ```
-git clone https://github.com/zakVolz/sprint15.git # клонирует данный репозиторий
+git clone https://github.com/zakVolz/sprint13.git # клонирует данный репозиторий
 cd sprint14 # переходим в папку репозитория
 npm install # установит все зависимости из package.json
 ```
