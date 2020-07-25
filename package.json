@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zakVolz/sprint12.git"
+    "url": "git+https://github.com/zakVolz/sprint15.git"
   },
   "keywords": [],
   "author": "Evgeniy Zadorozhnyh",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/zakVolz/sprint12/issues"
+    "url": "https://github.com/zakVolz/sprint15/issues"
   },
-  "homepage": "https://github.com/zakVolz/sprint12#readme",
+  "homepage": "https://github.com/zakVolz/sprint15#readme",
   "devDependencies": {
     "eslint": "^7.2.0",
     "eslint-config-airbnb-base": "^14.2.0",
