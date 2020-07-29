@@ -1,94 +1,75 @@
 const Card = require('../models/card');
-
+const { ForbiddenError, NotFoundError, BadRequestError } = require('../errors/errors');
 // eslint-disable-next-line import/order
 const { ObjectId } = require('mongoose').Types;
 
-module.exports.getCards = (req, res) => {
-  Card.find({})
-    .then((item) => res.send({
+module.exports.getCards = async (req, res, next) => {
+  try {
+    const item = await Card.find({})
+      .populate('owner');
+    return res.send({
       data: item,
-    }))
-    .catch(() => res.status(500).send({
-      message: 'Ошибка при загрузке карточек',
-    }));
+    });
+  } catch (err) {
+    return next(err);
+  }
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = async (req, res) => {
   const { name, link } = req.body;
-  Card.create({ name, link, owner: req.user._id })
-    .then((item) => res.send({ data: item }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({
-          message: err.message,
-        });
-      } else {
-        res.status(500).send({
-          message: 'Internal server error',
-        });
-      }
-    });
+  try {
+    const item = await Card.create({ name, link, owner: req.user._id });
+    return res.send({ data: item });
+  } catch (err) {
+    const code = err.name === 'ValidationError' ? 400 : 500;
+    return res.status(code).send({ error: err.message });
+  }
 };
 
-module.exports.deleteCard = (req, res) => Card.findById(req.params.cardId)
-  .orFail(new Error('Ошибка при удалении карточки'))
-  .then((obj) => {
+module.exports.deleteCard = async (req, res, next) => {
+  try {
+    const obj = await Card.findById(req.params._id)
+      .orFail(new NotFoundError('The card is missing'));
     if (req.user._id !== obj.owner.toString()) {
-      return res.status(403).send({
-        message: 'У вас недостаточно прав для удаления этой карточки',
-      });
-    } return Card.findByIdAndDelete(req.params.cardId)
-      .then((elemCard) => res.send(elemCard))
-      .catch((err) => res.status(400).send({ message: err.message }));
-  })
-  .catch(() => {
-    res.status(404).send({
-      message: 'Ошибка! Такой карточки нет',
-    });
-  });
-
-module.exports.likeCard = (req, res) => {
-  if (!ObjectId.isValid(req.params.cardId)) {
-    res.status(400).send({ message: 'Неправильный id' });
-    return;
-  } Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
-    { new: true },
-  ).then((item) => {
-    if (item === null) {
-      res.status(404).send({
-        message: 'Ошибка! Такой карточки нет',
-      });
-    } else {
-      res.send({
-        data: item,
-      });
-    }
-  }).catch(() => res.status(500).send({
-    message: 'Ошибка. Лайк не установлен',
-  }));
+      throw new ForbiddenError('You can only delete your own cards');
+    } const elemCard = await Card.findByIdAndDelete(req.params._id);
+    return res.send(elemCard);
+  } catch (err) {
+    return next(err);
+  }
 };
 
-module.exports.dislikeCard = (req, res) => {
-  if (!ObjectId.isValid(req.params.cardId)) {
-    res.status(400).send({ message: 'Неправильный id' });
-    return;
-  } Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: req.user._id } },
-    { new: true },
-  ).then((item) => {
+module.exports.likeCard = async (req, res, next) => {
+  if (!ObjectId.isValid(req.params._id)) {
+    throw new BadRequestError('Invalid id');
+  } try {
+    const item = await Card.findByIdAndUpdate(
+      req.params._id,
+      { $addToSet: { likes: req.user._id } },
+      { new: true },
+    ).populate('owner');
     if (item === null) {
-      res.status(404).send({
-        message: 'Ошибка! Такой карточки нет',
-      });
-    } else {
-      res.send({
-        data: item,
-      });
+      throw new NotFoundError('The card is missing');
     }
-  }).catch(() => res.status(500).send({
-    message: 'Ошибка при удалении лайка',
-  }));
+    return res.send({ data: item });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+module.exports.dislikeCard = async (req, res, next) => {
+  if (!ObjectId.isValid(req.params._id)) {
+    throw new BadRequestError('Invalid id');
+  } try {
+    const item = await Card.findByIdAndUpdate(
+      req.params._id,
+      { $pull: { likes: req.user._id } },
+      { new: true },
+    ).populate('owner');
+    if (item === null) {
+      throw new NotFoundError('The card is missing');
+    } return res.send({ data: item });
+  } catch (err) {
+    return next(err);
+  }
 };

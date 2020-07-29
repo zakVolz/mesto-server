@@ -1,107 +1,81 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const key = require('../secretKey');
+const { JWT_SECRET } = require('../config');
 // eslint-disable-next-line import/order
 const { ObjectId } = require('mongoose').Types;
+const { NotFoundError, BadRequestError } = require('../errors/errors');
 
 const opts = { runValidators: true, new: true };
 
-module.exports.getUsers = async (req, res) => {
+module.exports.getUsers = async (req, res, next) => {
   const data = await User.find({});
   try {
     res.send({ data });
-  } catch (err) {
-    res.status(500).send({
-      message: 'Ошибка при загрузке пользователей',
-    });
-  }
+  } catch (err) { next(err); }
 };
 
-module.exports.getOneUser = async (req, res) => {
+// eslint-disable-next-line consistent-return
+module.exports.getOneUser = async (req, res, next) => {
   try {
     if (ObjectId.isValid(req.params._id)) {
       const {
         _id, email, name, about, avatar,
       } = await User.findById(req.params._id)
-        .orFail(new Error('Ошибка при поиске пользователя'));
+        .orFail(new BadRequestError('Invalid id'));
       return res.send({
         _id, email, name, about, avatar,
       });
-    } return res.status(400).send({
-      message: 'Ошибка! Некорректный ID',
-    });
+    } throw new BadRequestError('Invalid id');
   } catch (err) {
-    return res.status(404).send({
-      message: 'Ошибка! Такого пользователя нет',
-    });
+    next(new NotFoundError('The profile is missing'));
   }
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = async (req, res) => {
   const {
     email, password, name, about, avatar,
   } = req.body;
   if (password !== undefined && password.length >= 8) {
-    return bcrypt.hash(password, 10)
-      .then((hash) => User.create({
+    try {
+      const hash = await bcrypt.hash(password, 10);
+      const user = await User.create({
         email, password: hash, name, about, avatar,
-      }))
-      .then((user) => res.send(
+      });
+      return res.send(
         {
           data: {
             name: user.name, about: user.about, avatar: user.avatar, email: user.email,
           },
         },
-      ))
-      .catch((err) => {
-        if (err.name === 'ValidationError') {
-          res.status(409).send({
-            message: err.message,
-          });
-        } else {
-          res.status(500).send({
-            message: 'Internal server error',
-          });
-        }
-      });
-  } return res.status(400).send({
-    message: 'Пароль отсутствует или слишком короткий. Минимум 8 символов',
-  });
+      );
+    } catch (err) {
+      const code = err.name === 'ValidationError' ? 400 : 500;
+      return res.status(code).send({ error: err.message });
+    }
+  } throw new BadRequestError('The password is missing or too short. Minimum of 8 characters');
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = async (req, res) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about }, opts)
-    .then((item) => res.send({ data: item }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({
-          message: err.message,
-        });
-      } else {
-        res.status(500).send({
-          message: 'Internal server error',
-        });
-      }
-    });
+  try {
+    const item = await User.findByIdAndUpdate(req.user._id, { name, about }, opts);
+    return res.send({ data: item });
+  } catch (err) {
+    const code = err.name === 'ValidationError' ? 400 : 500;
+    return res.status(code).send({ error: err.message });
+  }
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = async (req, res) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }, opts)
-    .then((item) => res.send({ data: item }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({
-          message: err.message,
-        });
-      } else {
-        res.status(500).send({
-          message: 'Internal server error',
-        });
-      }
-    });
+  try {
+    const item = await User.findByIdAndUpdate(req.user._id, { avatar }, opts);
+    return res.send({ data: item });
+  } catch (err) {
+    const code = err.name === 'ValidationError' ? 400 : 500;
+    return res.status(code).send({ error: err.message });
+  }
 };
 
 module.exports.login = (req, res) => {
@@ -109,14 +83,14 @@ module.exports.login = (req, res) => {
   if (password && email !== null) {
     return User.findUserByCredentials(email, password)
       .then((user) => {
-        const token = jwt.sign({ _id: user._id }, key);
+        const token = jwt.sign({ _id: user._id }, JWT_SECRET);
         res.cookie('jwt', token, {
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
           sameSite: true,
         });
-        res.send({ token });
+        res.send('Successful authorization');
       })
       .catch((err) => res.status(401).send({ message: err.message }));
-  } return res.status(401).send({ message: 'Неправильные почта или пароль' });
+  } throw new BadRequestError('Incorrect email or password');
 };
