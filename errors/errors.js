@@ -1,8 +1,9 @@
-const ForbiddenError = require('./forbidden');
-const NotFoundError = require('./notFound');
-const UnauthorizedError = require('./unauthorized');
-const BadRequestError = require('./badRequest');
+const ForbiddenError = require('./forbidden'); // 403
+const NotFoundError = require('./notFound'); // 404
+const UnauthorizedError = require('./unauthorized'); // 401
+const BadRequestError = require('./badRequest'); // 400
+const ConflictingRequest = require('./conflictingRequest'); // 409
 
 module.exports = {
-  ForbiddenError, NotFoundError, UnauthorizedError, BadRequestError,
+  ForbiddenError, NotFoundError, UnauthorizedError, BadRequestError, ConflictingRequest,
 };
