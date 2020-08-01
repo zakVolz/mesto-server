@@ -65,7 +65,8 @@ module.exports.updateUser = async (req, res, next) => {
   } catch (err) {
     if (err.name === 'ValidationError') {
       return next(new BadRequestError(err));
-    } return next(err);
+    }
+    return next(err);
   }
 };
 
@@ -77,7 +78,8 @@ module.exports.updateAvatar = async (req, res, next) => {
   } catch (err) {
     if (err.name === 'ValidationError') {
       return next(new BadRequestError(err));
-    } return next(err);
+    }
+    return next(err);
   }
 };
 
@@ -94,5 +96,6 @@ module.exports.login = (req, res, next) => {
         });
         res.send({ message: 'Successful authorization' });
       }).catch(next);
-  } throw new BadRequestError('Incorrect email or password');
+  }
+  throw new BadRequestError('Incorrect email or password');
 };

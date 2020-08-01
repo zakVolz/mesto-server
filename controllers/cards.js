@@ -2,8 +2,6 @@ const Card = require('../models/card');
 const {
   ForbiddenError, NotFoundError, BadRequestError,
 } = require('../errors/errors');
-// eslint-disable-next-line import/order
-const { ObjectId } = require('mongoose').Types;
 
 module.exports.getCards = async (req, res, next) => {
   try {
@@ -25,7 +23,8 @@ module.exports.createCard = async (req, res, next) => {
   } catch (err) {
     if (err.name === 'ValidationError') {
       return next(new BadRequestError(err));
-    } return next(err);
+    }
+    return next(err);
   }
 };
 
@@ -45,9 +44,7 @@ module.exports.deleteCard = async (req, res, next) => {
 };
 
 module.exports.likeCard = async (req, res, next) => {
-  if (!ObjectId.isValid(req.params._id)) {
-    return next(new BadRequestError('Invalid id'));
-  } try {
+  try {
     const item = await Card.findByIdAndUpdate(
       req.params._id,
       { $addToSet: { likes: req.user._id } },
@@ -56,16 +53,15 @@ module.exports.likeCard = async (req, res, next) => {
       .populate('owner');
     if (item === null) {
       throw new NotFoundError('The card is missing');
-    } return res.send({ data: item });
+    }
+    return res.send({ data: item });
   } catch (err) {
     return next(err);
   }
 };
 
 module.exports.dislikeCard = async (req, res, next) => {
-  if (!ObjectId.isValid(req.params._id)) {
-    return next(new BadRequestError('Invalid id'));
-  } try {
+  try {
     const item = await Card.findByIdAndUpdate(
       req.params._id,
       { $pull: { likes: req.user._id } },
