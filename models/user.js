@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 const validator = require('validator');
-const { UnauthorizedError } = require('../errors/errors');
+const { UnauthorizedError, ConflictingRequest } = require('../errors/errors');
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -59,5 +59,5 @@ userSchema.statics.findUserByCredentials = function (email, password) {
     });
 };
 
-userSchema.plugin(uniqueValidator, new UnauthorizedError('Email is already in use'));
+userSchema.plugin(uniqueValidator, new ConflictingRequest('Email is already in use'));
 module.exports = mongoose.model('user', userSchema);
