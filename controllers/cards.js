@@ -1,7 +1,5 @@
 const Card = require('../models/card');
-const {
-  ForbiddenError, NotFoundError, BadRequestError,
-} = require('../errors/errors');
+const { ForbiddenError, NotFoundError } = require('../errors/errors');
 
 module.exports.getCards = async (req, res, next) => {
   try {
@@ -19,11 +17,10 @@ module.exports.createCard = async (req, res, next) => {
   const { name, link } = req.body;
   try {
     const item = await Card.create({ name, link, owner: req.user._id });
-    return res.send({ data: item });
+    const populate = await Card.findById(item._id)
+      .populate('owner');
+    return res.send({ data: populate });
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      return next(new BadRequestError(err));
-    }
     return next(err);
   }
 };

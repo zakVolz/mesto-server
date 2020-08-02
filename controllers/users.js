@@ -47,11 +47,8 @@ module.exports.createUser = async (req, res, next) => {
       email: user.email,
     });
   } catch (err) {
-    if (err.errors.email.kind === 'unique') {
+    if (err.errors.email && err.errors.email.kind === 'unique') {
       return next(new ConflictingRequest('Email is already in use'));
-    }
-    if (err.name === 'ValidationError') {
-      return next(new BadRequestError(err));
     }
     return next(err);
   }

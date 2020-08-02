@@ -6,7 +6,7 @@ const isUrl = (/http[s]?:\/\/(((\d{1,3}\.){3}\d{1,3})|(([a-zA-Z/\d-]+\.)?[[a-zA-
 // Валидация Joi для роутов, получающих на вход id
 const validId = celebrate({
   params: Joi.object().keys({
-    _id: Joi.string().alphanum().length(24).hex(),
+    _id: Joi.string().length(24).hex(),
   }),
 });
 
