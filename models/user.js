@@ -2,13 +2,14 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 const validator = require('validator');
+const { UnauthorizedError, ConflictingRequest } = require('../errors/errors');
 
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
     validate: {
       validator: (value) => validator.isEmail(value),
-      message: (props) => `${props.value} не является валидным email адресом!`,
+      message: (props) => `${props.value} is invalid email address`,
     },
     unique: true,
     required: true,
@@ -34,7 +35,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     validate: {
       validator: (value) => validator.isURL(value),
-      message: (props) => `${props.value} не является валидной ссылкой!`,
+      message: (props) => `${props.value}  is invalid link`,
     },
     required: true,
   },
@@ -46,17 +47,17 @@ userSchema.statics.findUserByCredentials = function (email, password) {
     .select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        return Promise.reject(new UnauthorizedError('Incorrect email or password'));
       }
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new Error('Неправильные почта или пароль'));
+            return Promise.reject(new UnauthorizedError('Incorrect email or password'));
           }
           return user;
         });
     });
 };
 
-userSchema.plugin(uniqueValidator, { message: 'Данный e-mail уже занят' });
+userSchema.plugin(uniqueValidator, new ConflictingRequest('Email is already in use'));
 module.exports = mongoose.model('user', userSchema);

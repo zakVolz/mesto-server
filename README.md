@@ -1,46 +1,54 @@
-# Проектная работа #14 - 'Mesto' Версия: 1.0.0
+# Проектная работа #15 - 'Mesto' Версия: 1.0.0
 Учебный проект Яндекс.Практикум - одностраничный сайт, который подгружает/изменяет профиль пользователя с сервера и загружает с сервера и показывает карточки с фото и названием.
 
-Чтобы развернуть проект у себя на ПК необходимо установить [Git](https://git-scm.com/), [Node.js с NPM](https://nodejs.org/en/), [Mongo](https://www.mongodb.com/download-center/community?jmp=docs) и [Postman](https://www.postman.com/downloads/)
+Чтобы развернуть проект у себя на ПК необходимо установить [Git](https://git-scm.com/), [Node.js с NPM](https://nodejs.org/en/), система управления базами данных [Mongo](https://www.mongodb.com/download-center/community?jmp=docs) и программа для отправки запросов [Postman](https://www.postman.com/downloads/)
 
 В терминале Git Bush нужно выполнить следующие команды:
 ```
-git clone https://github.com/zakVolz/sprint13.git # клонирует данный репозиторий
-cd sprint14 # переходим в папку репозитория
+git clone https://github.com/zakVolz/sprint15.git # клонирует данный репозиторий
+cd sprint15 # переходим в папку репозитория
 npm install # установит все зависимости из package.json
 ```
 
-Далее запускаем локальный сервер localhost:3000:
-```
-npm run dev # режим, который в реальном времени следит за файлами, обновляя сервер при изменениях.
+Сервер доступен по нескольким адресам:
+- На публичном IP-адресе http://130.193.39.129/
+- На домене http://api.mesto-prod.tk/ и https://api.mesto-prod.tk/
 
-npm run start # режим без отслеживания изменения файлов
-```
-
-Запускаем установленный MongoDBCompass, в адресной строке вводим `mongodb://localhost:27017/mestodb`. Здесь и будет храниться наша база данных.
+Фронтэнд доступен на http://mesto-prod.tk/ и https://mesto-prod.tk/
 
 Запросы с сервера
 ```
-В ответ на запрос GET localhost:3000/users сервер вернёт JSON-объект со всеми пользователями.
+На запрос GET https://api.mesto-prod.tk/users сервер вернёт JSON-объект со всеми пользователями.
 
-GET localhost:3000/users/userId вернёт запрошенного по ID пользователя.
+PATCH https://api.mesto-prod.tk/users/me обновляет данные профиля name и about.
 
-POST localhost:3000/signup создаст пользователя по введённым данным name, about, avatar.
+PATCH https://api.mesto-prod.tk/users/me/avatar обновляет avatar профиля.
+
+GET https://api.mesto-prod.tk/users/id вернёт запрошенного по ID пользователя.
+
+POST https://api.mesto-prod.tk/signup создаст пользователя по введённым данным name, about, avatar.
 В поле avatar должна быть ссылка,
 в поле email должен быть корректный адрес, иначе сервер вернёт ошибку.
 
-POST localhost:3000/signin выполняет авторизацию пользователя, выдаёт токен на 7 дней.
+POST https://api.mesto-prod.tk/signin выполняет авторизацию пользователя, выдаёт токен на 7 дней.
 
-GET localhost:3000/cards возвращает JSON-объект со всеми карточками.
+GET https://api.mesto-prod.tk/cards возвращает JSON-объект со всеми карточками.
 
-POST localhost:3000/cards создаст карточку по введённым данным name, link.
+POST https://api.mesto-prod.tk/cards создаст карточку по введённым данным name, link.
 В поле link должна быть ссылка, иначе сервер вернёт ошибку.
 
-DELETE localhost:3000/cards/cardId удаляет найденную по ID карточку, если она создана вами.
+DELETE https://api.mesto-prod.tk/cards/id удаляет найденную по ID карточку, если она создана вами.
+
+PUT https://api.mesto-prod.tk/cards/id/likes добавляет в массив likes объекта карточки информацию
+о профиле создателя запроса.
+
+DELETE https://api.mesto-prod.tk/cards/id/likes удаляет из массива likes объекта карточки информацию
+о профиле создателя запроса.
 ```
 
 ```
-Сервер может возвращать ошибки с соответствующими кодами,
-если пытаться перейти по несуществующему адресу, создать карточку/пользователя
-с невалидными данными или допустить ошибку при вводе ID.
+Сервер имеет централизованную обработку ошибок с соответствующими кодами,
+возвращает их в формате JSON. Ошибки возникают если пытаться перейти по несуществующему адресу,
+создать карточку/пользователя с невалидными данными, допустить ошибку при вводе ID,
+попытаться удалить чужую карточку и т.д.
 ```
